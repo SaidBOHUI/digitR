@@ -1,0 +1,142 @@
+---
+title: "Digit Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+```{r}
+#devtools::install_github("r-lib/conflicted")
+```
+```{r}
+library(conflicted)
+library(dplyr)
+conflicts_prefer(dplyr::filter)
+```
+
+```{r}
+library(tidyverse)
+library(keras)
+library(ggplot2)
+library(caret)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+```{r}
+train_data <- read.csv('./data/train.csv')
+test_data <- read.csv('./data/test.csv')
+```
+```{r}
+summary(train_data)
+str(train_data)
+```
+```{r}
+ggplot(train_data, aes(x = factor(train_data[, 1]))) + 
+  geom_bar(fill = "blue") + 
+  labs(title = "Distribution des chiffres", x = "Chiffres", y = "Quantité")
+```
+```{r}
+colSums(is.na(train_data))
+```
+```{r}
+#Meilleur moyen
+any(is.na(train_data))
+any(is.na(test_data))
+
+```
+
+```{r}
+train_data_process <- train_data %>%
+  mutate(across(-1, ~ . / 255))
+
+test_data_process <- test_data %>%
+  mutate(across(-1, ~ . / 255))
+```
+
+```{r}
+set.seed(123)
+trainIndex <- createDataPartition(train_data_process[, 1], p = 0.8, list = FALSE)
+train_set <- train_data_process[trainIndex, ]
+valid_set <- train_data_process[-trainIndex, ]
+```
+
+```{r}
+library(keras)
+train_x <- as.matrix(train_set[, -1])
+train_y <- to_categorical(train_set[, 1])
+
+valid_x <- as.matrix(valid_set[, -1])
+valid_y <- to_categorical(valid_set[, 1])
+
+```
+```{r}
+model <- keras_model_sequential() %>%
+  layer_dense(units = 256, activation = 'relu', input_shape = c(784)) %>%
+  layer_dropout(rate = 0.4) %>%
+  layer_dense(units = 128, activation = 'relu') %>%
+  layer_dropout(rate = 0.3) %>%
+  layer_dense(units = 10, activation = 'softmax')
+```
+
+```{r}
+model %>% compile(
+  loss = 'categorical_crossentropy',
+  optimizer = optimizer_rmsprop(),
+  metrics = c('accuracy')
+)
+```
+
+```{r}
+history <- model %>% fit(
+  train_x, train_y,
+  epochs = 30, batch_size = 128,
+  validation_data = list(valid_x, valid_y)
+)
+```
+
+```{r}
+history_df <- data.frame(
+  epoch = seq(1, 30),
+  accuracy = history$metrics$accuracy,
+  val_accuracy = history$metrics$val_accuracy,
+  loss = history$metrics$loss,
+  val_loss = history$metrics$val_loss
+)
+```
+
+```{r}
+ggplot(history_df, aes(x = epoch)) +
+  geom_line(aes(y = accuracy, color = 'Training Accuracy')) +
+  geom_line(aes(y = val_accuracy, color = 'Validation Accuracy')) +
+  labs(title = 'Accuracy over Epochs', x = 'Epoch', y = 'Accuracy') +
+  theme_minimal()
+```
+```{r}
+ggplot(history_df, aes(x = epoch)) +
+  geom_line(aes(y = loss, color = 'Training Loss')) +
+  geom_line(aes(y = val_loss, color = 'Validation Loss')) +
+  labs(title = 'Loss over Epochs', x = 'Epoch', y = 'Loss') +
+  theme_minimal()
+```
+
+```{r}
+test_evaluation <- model %>% evaluate(train_x, train_y)
+```
+```{r}
+cat('Test Loss:', test_evaluation["loss"], '\n')
+
+cat('Test Accuracy:', test_evaluation["accuracy"])
+```
+```{r}
+model %>% save_model_hdf5("model.h5")
+```
+
+```{r}
+model %>% save_model_tf("model_directory")
+```
+

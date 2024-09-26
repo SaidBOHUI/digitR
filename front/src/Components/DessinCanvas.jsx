@@ -43,7 +43,6 @@ const DessinCanvas = () => {
     tempCanvas.height = 28;
     const tempContext = tempCanvas.getContext("2d");
   
-    // Draw the original canvas content scaled down to 28x28
     tempContext.drawImage(canvas, 0, 0, 28, 28);
   
     return tempCanvas;
