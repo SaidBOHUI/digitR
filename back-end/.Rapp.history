@@ -1,0 +1,40 @@
+install.packages("jsonlite")#
+install.packages("rlang")
+install.packages("languageserver")
+q
+install.packages("shiny")
+library(shiny)
+library(shiny)#
+#
+# Interface utilisateur#
+ui <- fluidPage(#
+  titlePanel("Bonjour Shiny !"),#
+  sidebarLayout(#
+    sidebarPanel(#
+      sliderInput("obs", "Nombre d'observations:", min = 1, max = 100, value = 50)#
+    ),#
+    mainPanel(#
+      plotOutput("distPlot")#
+    )#
+  )#
+)#
+#
+# Logique serveur#
+server <- function(input, output) {#
+  output$distPlot <- renderPlot({#
+    hist(rnorm(input$obs))#
+  })#
+}#
+#
+# Lancer l'application Shiny#
+shinyApp(ui = ui, server = server)
+setwd(/Users/said/IPSSI/M2/week_7_R/digitR)
+setwd(""/Users/said/IPSSI/M2/week_7_R/digitR")
+q
+setwd("/Users/said/IPSSI/M2/week_7_R/digitR/back-end")
+gewd()
+getwd()
+source("app.R")
+Rscript app.R
+source("app.R")
+source("app.R")
