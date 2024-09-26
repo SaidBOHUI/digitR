@@ -19,23 +19,23 @@ const DessinCanvas = () => {
   const [showModalCaptcha, setShowModalCaptcha] = useState(true);
   const [resultCaptcha, setResultCaptcha] = useState("");
 
-  useEffect(() => {
-    const loadModel = async () => {
-      setIsLoading(true);
-      try {
-        const loadedModel = await tf.loadLayersModel(
-          "http://localhost:4000/model/model.json"
-        );
-        setModel(loadedModel);
-      } catch (error) {
-        console.error("Failed to load model", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadModel();
-    if(sessionStorage.getItem("CAPTCHA")==="true") setShowModalCaptcha(false)
-  }, []);
+  // useEffect(() => {
+  //   const loadModel = async () => {
+  //     setIsLoading(true);
+  //     try {
+  //       const loadedModel = await tf.loadLayersModel(
+  //         "http://localhost:4000/model/model.json"
+  //       );
+  //       setModel(loadedModel);
+  //     } catch (error) {
+  //       console.error("Failed to load model", error);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+  //   loadModel();
+  //   if(sessionStorage.getItem("CAPTCHA")==="true") setShowModalCaptcha(false)
+  // }, []);
 
   const canvasToImageData = (canvas) => {
     const context = canvas.getContext("2d");
