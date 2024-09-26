@@ -37,15 +37,31 @@ const DessinCanvas = () => {
   //   if(sessionStorage.getItem("CAPTCHA")==="true") setShowModalCaptcha(false)
   // }, []);
 
+  const resizeCanvasTo28x28 = (canvas) => {
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = 28;
+    tempCanvas.height = 28;
+    const tempContext = tempCanvas.getContext("2d");
+  
+    // Draw the original canvas content scaled down to 28x28
+    tempContext.drawImage(canvas, 0, 0, 28, 28);
+  
+    return tempCanvas;
+  };
+
   const canvasToImageData = (canvas) => {
-    const context = canvas.getContext("2d");
-    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    const resizedCanvas = resizeCanvasTo28x28(canvas);
+    const context = resizedCanvas.getContext("2d");
+    const imageData = context.getImageData(0, 0, resizedCanvas.width, resizedCanvas.height);
     const data = imageData.data;
     const pixels = [];
 
     for (let i = 0; i < data.length; i += 4) {
-      const grayscale = Math.floor((data[i] + data[i + 1] + data[i + 2]) / 3);
-      pixels.push(grayscale);
+      const red = data[i];
+    const green = data[i + 1];
+    const blue = data[i + 2];
+    const grayscale = Math.floor((red + green + blue) / 3); 
+    pixels.push(grayscale);
     }
     return { pixels };
   };
@@ -68,33 +84,19 @@ const DessinCanvas = () => {
       ? (canvas = canvasRef.current.canvasContainer.childNodes[1])
       : (canvas = canvasRefCaptcha.current.canvasContainer.childNodes[1]);
 
-    if (!canvas || !model) return;
+    if (!canvas) return;
 
     !captcha ? setIsLoading(true) : setIsLoadingCaptcha(true);
     try {
-      const tensorImage = await preprocessCanvasImage(canvas);
-      const predictionArray = await model.predict(tensorImage).data();
-      const predictedIndex = predictionArray.indexOf(
-        Math.max(...predictionArray)
-      );
       if (!captcha) {
-        setPrediction(`Prédiction : ${predictedIndex}`);
         const pixelJSON = canvasToImageData(canvas);
-        pixelJSON["resultat"] = predictedIndex;
         const response = await axios.post(
-          "http://localhost:4000/numbers/",
+          "http://127.0.0.1:4000/predict",
           pixelJSON
-        );
+        )
+        setPrediction(response.data.predicted_digit[0])
         console.log("Réponse du serveur :", response.data);
-      } else {
-        if (predictionArray.some((num) => num > 0.7)) {
-          handleCloseCaptcha();
-          sessionStorage.setItem("CAPTCHA", "true");
-        } else {
-          setResultCaptcha("Ce n'est pas un numéro");
-          refaireDessin(true);
-        }
-      }
+      } 
     } catch (error) {
       console.error("Erreur lors de la prédiction :", error);
       !captcha
@@ -128,7 +130,7 @@ const DessinCanvas = () => {
       setIsCanvasEmpty(dataVierge === '{"lines":[],"width":400,"height":400}');
     };
     verifierSiCanvasEstVide();
-  }, [prediction]); // Recheck whenever a prediction is made to ensure state reflects the current canvas status
+  }, [prediction]); 
 
   const handleClose = () => {
     setShowModal(false);
@@ -216,46 +218,7 @@ const DessinCanvas = () => {
           </Box>
         </Box>
       </Modal>
-      <ModalBoot
-        show={showModalCaptcha}
-        onHide={handleCloseCaptcha}
-        backdrop="static"
-        keyboard={false}
-        >
-        <ModalBoot.Header>
-          <ModalBoot.Title>Captcha</ModalBoot.Title>
-        </ModalBoot.Header>
-        <ModalBoot.Body>
-          <p>
-            Dessinez un chiffre pour prouver que vous n'êtes pas une machine
-          </p>
-          <div style={{ border: "2px solid #000", padding: "10px" }}>
-            <CanvasDraw
-              ref={canvasRefCaptcha}
-              brushRadius={13}
-              lazyRadius={0}
-              canvasWidth={400}
-              canvasHeight={400}
-              onChange={() => setIsCanvasEmptyCaptcha(false)}
-            />
-          </div>
-          {resultCaptcha !== "" ? <p>{resultCaptcha}</p> : <></>}
-        </ModalBoot.Body>
-        <ModalBoot.Footer>
-          <ButtonBoot
-            onClick={() => {
-              envoyerDessin(true);
-            }}
-            disabled={isCanvasEmptyCaptcha || isLoadingCaptcha}
-            variant="primary">
-            {isLoadingCaptcha ? (
-              <CircularProgress size={24} />
-            ) : (
-              "Confirmer"
-            )}
-          </ButtonBoot>{" "}
-        </ModalBoot.Footer>
-      </ModalBoot>
+      
     </Container>
   )
 }
