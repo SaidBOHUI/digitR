@@ -3,7 +3,7 @@ library(mongolite)
 library(jsonlite)
 library(tensorflow) 
 
-db_conn <- mongo(collection = "drawings", db = "your_database_name", url = "mongodb://localhost:27017")
+db_conn <- mongo(collection = "user_drawings", db = "Digit_Recognition", url = "mongodb+srv://admin:admin@cluster0.26heell.mongodb.net/")
 
 model <- load_model_hdf5("/Users/said/IPSSI/M2/week_7_R/digitR/back-end/dataModel/model.h5")
 
