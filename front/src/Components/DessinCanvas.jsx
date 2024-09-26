@@ -9,7 +9,6 @@ import axios from "axios"
 const DessinCanvas = () => {
   const canvasRef = useRef(null);
   const canvasRefCaptcha = useRef(null);
-  const [model, setModel] = useState(null);
   const [prediction, setPrediction] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingCaptcha, setIsLoadingCaptcha] = useState(false);
@@ -17,25 +16,7 @@ const DessinCanvas = () => {
   const [isCanvasEmptyCaptcha, setIsCanvasEmptyCaptcha] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showModalCaptcha, setShowModalCaptcha] = useState(true);
-  const [resultCaptcha, setResultCaptcha] = useState("");
 
-  // useEffect(() => {
-  //   const loadModel = async () => {
-  //     setIsLoading(true);
-  //     try {
-  //       const loadedModel = await tf.loadLayersModel(
-  //         "http://localhost:4000/model/model.json"
-  //       );
-  //       setModel(loadedModel);
-  //     } catch (error) {
-  //       console.error("Failed to load model", error);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
-  //   loadModel();
-  //   if(sessionStorage.getItem("CAPTCHA")==="true") setShowModalCaptcha(false)
-  // }, []);
 
   const resizeCanvasTo28x28 = (canvas) => {
     const tempCanvas = document.createElement("canvas");
